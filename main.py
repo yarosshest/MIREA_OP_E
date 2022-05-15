@@ -2,7 +2,7 @@ from tkinter import ttk, LEFT, LabelFrame, Entry, Frame, StringVar, Label, TOP, 
 import tkinter as tk
 import requests
 from bs4 import BeautifulSoup
-import datetime
+from datetime import datetime, timedelta
 
 
 def get_db_by_date(date):
@@ -89,7 +89,7 @@ class App(object):
         to_day = datetime.date.today()
         dates = []
         if self.date.get() == 0:
-            step = datetime.timedelta(weeks=1)
+            step = timedelta(weeks=1)
             date_last = to_day
             for i in range(3):
                 days_ago = date_last - step
@@ -99,12 +99,18 @@ class App(object):
         if self.date.get() == 1:
             date_last = to_day
             for i in range(3):
-                days_ago = date_last.replace(day=1) - datetime.timedelta(days=1)
+                days_ago = date_last.replace(day=1) - timedelta(days=1)
                 str_date = date_last.strftime("%B") + " " + date_last.strftime("%Y")
                 dates.append(str_date)
                 date_last = days_ago
         if self.date.get() == 2:
-            step = datetime.timedelta(months=3)
+            date_last = round((to_day.month - 1) / 3 + 1)
+            date_last = datetime(to_day.year, 3 * date_last - 2, 1)
+            for i in range(3):
+                days_ago = datetime(date_last.year, 3 * date_last - 2, 1) - timedelta(days=1)
+                str_date = date_last.strftime("%Y") + ' '+date_last.quarter
+                dates.append(str_date)
+                date_last = days_ago
         if self.date.get() == 3:
             step = datetime.timedelta(months=12)
         self.combo_period['values'] = dates
