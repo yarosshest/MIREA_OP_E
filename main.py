@@ -1,5 +1,4 @@
 from tkinter import ttk, LEFT, LabelFrame, Entry, Frame, StringVar, Label, TOP, X, IntVar, Radiobutton
-import tkinter as tk
 import requests
 from bs4 import BeautifulSoup
 from datetime import datetime, timedelta, date
@@ -7,13 +6,11 @@ from calendar import monthrange
 import tkinter as tk
 import matplotlib.dates as mdates
 import matplotlib
+import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
 matplotlib.use('TkAgg')
 
-from matplotlib.backends.backend_tkagg import (
-    FigureCanvasTkAgg,
-    NavigationToolbar2Tk
-)
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 
 def get_db_by_date(dt):
@@ -40,7 +37,7 @@ class App(object):
     def __init__(self):
         self.data = None
         self.app = tk.Tk()
-        self.app.geometry('800x300')
+        self.app.geometry('1200x900')
         self.res = StringVar()
         self.am = StringVar()
         self.fr = StringVar()
@@ -164,21 +161,33 @@ class App(object):
         x = []
         while begin <= end:
             y.append(get_val_of_date(self.ch.get(), begin))
-            x.append(begin)
-            begin += timedelta(days=1)
-        return [matplotlib.dates.date2num(x), y]
+            x.append(begin.strftime("%d-%m"))
+            if self.date.get() == 0:
+                begin += timedelta(days=1)
+            if self.date.get() == 1:
+                begin += timedelta(days=1)
+            if self.date.get() == 2:
+                begin.replace(month=begin.month+1)
+            if self.date.get() == 3:
+                begin.replace(month=begin.month+1)
+        return [x, y]
 
     def prep_mpl(self, frame):
-        figure = Figure(figsize=(6, 4), dpi=100)
-        self.figure_canvas = FigureCanvasTkAgg(figure, frame)
-        self.axes = figure.add_subplot()
-        self.axes.xaxis.set_major_locator(mdates.MonthLocator(bymonth=(1, 7)))
-        self.axes.xaxis.set_minor_locator(mdates.MonthLocator())
-        self.figure_canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
+        self.figure = plt.figure()
+        self.figure_canvas = FigureCanvasTkAgg(self.figure, master=frame)
+        self.plot_widget = self.figure_canvas.get_tk_widget()
+        self.plot_widget.pack(side=tk.LEFT, fill=tk.BOTH)
+        self.figure.clear()
+
 
     def draw_mpl(self):
-        self.axes.plot(self.prep_data())
-        self.figure_canvas.draw()
+        self.figure.clear()
+        dt = self.prep_data()
+        plt.plot(dt[0], dt[1])
+        plt.grid()
+        plt.show()
+        # self.plot_widget.grid()
+        self.plot_widget.pack(side=tk.LEFT, fill=tk.BOTH)
 
     def graph_button(self, frame):
         self.Button_graph = ttk.Button(frame, text="Построить график")
